@@ -1,0 +1,63 @@
+@use '@/styles/variables' as *;
+
+.colorPicker {
+  display: flex;
+  gap: 6px;
+}
+
+.colorPickerCompact {
+  gap: 4px;
+}
+
+.colorSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  border: 2px solid transparent;
+  cursor: pointer;
+  padding: 0;
+  transition: transform 0.1s ease, border-color 0.1s ease;
+
+  &:hover {
+    transform: scale(1.1);
+  }
+
+  &:focus-visible {
+    outline: 2px solid $color-focus-ring;
+    outline-offset: 2px;
+  }
+}
+
+.colorSwatchCompact {
+  width: 16px;
+  height: 16px;
+  border-width: 1.5px;
+}
+
+.colorSwatchSelected {
+  border-color: $color-swatch-selected-border;
+}
+
+.swatchYellow {
+  background-color: $swatch-yellow;
+}
+
+.swatchPink {
+  background-color: $swatch-pink;
+}
+
+.swatchBlue {
+  background-color: $swatch-blue;
+}
+
+.swatchGreen {
+  background-color: $swatch-green;
+}
+
+.swatchPurple {
+  background-color: $swatch-purple;
+}
+
+.swatchOrange {
+  background-color: $swatch-orange;
+}
