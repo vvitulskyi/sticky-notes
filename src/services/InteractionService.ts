@@ -18,9 +18,7 @@ export class InteractionService {
   #dragSession: DragSession | null = null;
   #resizeSession: ResizeSession | null = null;
   #trashChecker: TrashChecker | null = null;
-  #trashOverlap = false;
   #interactionListeners = new Set<Listener>();
-  #trashOverlapListeners = new Set<Listener>();
 
   constructor(
     private readonly notesStore: NotesStore,
@@ -35,11 +33,16 @@ export class InteractionService {
   }
 
   #setTrashOverlap(overlapped: boolean): void {
-    if (this.#trashOverlap === overlapped) {
+    if (this.#interactionState.type !== "dragging") {
       return;
     }
-    this.#trashOverlap = overlapped;
-    this.#trashOverlapListeners.forEach((l) => l());
+    if (this.#interactionState.isOverTrash === overlapped) {
+      return;
+    }
+    this.#setInteractionState({
+      ...this.#interactionState,
+      isOverTrash: overlapped,
+    });
   }
 
   #handlePointerMove = (event: PointerEvent): void => {
@@ -96,7 +99,11 @@ export class InteractionService {
       return;
     }
 
-    if (this.#trashOverlap) {
+    const shouldDelete =
+      this.#interactionState.type === "dragging" &&
+      this.#interactionState.isOverTrash;
+
+    if (shouldDelete) {
       this.notesStore.dispatch({
         type: "DELETE_NOTE",
         id: this.#dragSession.noteId,
@@ -107,7 +114,6 @@ export class InteractionService {
       this.#dragSession.pointerId,
     );
     this.#dragSession = null;
-    this.#setTrashOverlap(false);
     this.#setInteractionState({ type: "idle" });
   }
 
@@ -144,18 +150,9 @@ export class InteractionService {
     return this.#interactionState;
   }
 
-  get isTrashOverlapped(): boolean {
-    return this.#trashOverlap;
-  }
-
   subscribeInteraction = (listener: Listener): Unsubscribe => {
     this.#interactionListeners.add(listener);
     return () => this.#interactionListeners.delete(listener);
-  };
-
-  subscribeTrashOverlap = (listener: Listener): Unsubscribe => {
-    this.#trashOverlapListeners.add(listener);
-    return () => this.#trashOverlapListeners.delete(listener);
   };
 
   setTrashChecker(checker: TrashChecker | null): void {
@@ -189,7 +186,7 @@ export class InteractionService {
       pointerId: event.pointerId,
     };
 
-    this.#setInteractionState({ type: "dragging", noteId });
+    this.#setInteractionState({ type: "dragging", noteId, isOverTrash: false });
   }
 
   startResize(

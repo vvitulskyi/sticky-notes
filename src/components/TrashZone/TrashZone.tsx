@@ -8,7 +8,7 @@ interface TrashZoneProps {
 }
 
 function TrashZone({ isHighlighted, ref }: TrashZoneProps) {
-  const className = [
+  const visualClassName = [
     styles.trashZone,
     isHighlighted ? styles.trashZoneActive : "",
   ]
@@ -16,12 +16,14 @@ function TrashZone({ isHighlighted, ref }: TrashZoneProps) {
     .join(" ");
 
   return (
-    <div ref={ref} className={className} aria-label="Trash zone">
-      <span className={styles.label}>
-        Drop here
-        <br />
-        to delete
-      </span>
+    <div ref={ref} className={styles.trashZoneHitArea} aria-label="Trash zone">
+      <div className={visualClassName}>
+        <span className={styles.label}>
+          Drop here
+          <br />
+          to delete
+        </span>
+      </div>
     </div>
   );
 }

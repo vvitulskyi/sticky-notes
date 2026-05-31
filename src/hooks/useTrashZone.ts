@@ -11,17 +11,37 @@ import { intersects, rectFromDOM } from "@/utils/rect";
 
 import type { NoteId } from "@/types/note";
 
-function getTrashOverlapSnapshot(): boolean {
-  return interactionService.isTrashOverlapped;
+function getTrashHighlightedSnapshot(): boolean {
+  const state = interactionService.interactionState;
+  return state.type === "dragging" && state.isOverTrash;
+}
+
+function getIsDraggingSnapshot(noteId: NoteId): boolean {
+  const state = interactionService.interactionState;
+  return state.type === "dragging" && state.noteId === noteId;
+}
+
+function getIsResizingSnapshot(noteId: NoteId): boolean {
+  const state = interactionService.interactionState;
+  return state.type === "resizing" && state.noteId === noteId;
+}
+
+function getIsOverTrashSnapshot(noteId: NoteId): boolean {
+  const state = interactionService.interactionState;
+  return (
+    state.type === "dragging" &&
+    state.noteId === noteId &&
+    state.isOverTrash
+  );
 }
 
 export function useTrashZone() {
   const trashRef = useRef<HTMLDivElement>(null);
 
   const isHighlighted = useSyncExternalStore(
-    interactionService.subscribeTrashOverlap,
-    getTrashOverlapSnapshot,
-    getTrashOverlapSnapshot,
+    interactionService.subscribeInteraction,
+    getTrashHighlightedSnapshot,
+    getTrashHighlightedSnapshot,
   );
 
   const checkNoteOverlapsTrash = useCallback((noteId: NoteId): boolean => {
@@ -54,40 +74,25 @@ export function useTrashZone() {
   return { trashRef, isHighlighted };
 }
 
-function getInteractionStateSnapshot() {
-  return interactionService.interactionState;
-}
-
 export function useInteractionState(noteId: NoteId) {
-  const interactionState = useSyncExternalStore(
+  const isDragging = useSyncExternalStore(
     interactionService.subscribeInteraction,
-    getInteractionStateSnapshot,
-    getInteractionStateSnapshot,
+    () => getIsDraggingSnapshot(noteId),
+    () => getIsDraggingSnapshot(noteId),
   );
-
-  const isDragging =
-    interactionState.type === "dragging" && interactionState.noteId === noteId;
-  const isResizing =
-    interactionState.type === "resizing" && interactionState.noteId === noteId;
+  const isResizing = useSyncExternalStore(
+    interactionService.subscribeInteraction,
+    () => getIsResizingSnapshot(noteId),
+    () => getIsResizingSnapshot(noteId),
+  );
 
   return { isDragging, isResizing };
 }
 
 export function useTrashOverlapForNote(noteId: NoteId) {
-  const isHighlighted = useSyncExternalStore(
-    interactionService.subscribeTrashOverlap,
-    getTrashOverlapSnapshot,
-    getTrashOverlapSnapshot,
-  );
-
-  const interactionState = useSyncExternalStore(
+  return useSyncExternalStore(
     interactionService.subscribeInteraction,
-    getInteractionStateSnapshot,
-    getInteractionStateSnapshot,
+    () => getIsOverTrashSnapshot(noteId),
+    () => getIsOverTrashSnapshot(noteId),
   );
-
-  const isDraggingThis =
-    interactionState.type === "dragging" && interactionState.noteId === noteId;
-
-  return isDraggingThis && isHighlighted;
 }

@@ -3,7 +3,7 @@ import type { NoteId } from "./note";
 
 export type InteractionState =
   | { type: "idle" }
-  | { type: "dragging"; noteId: NoteId }
+  | { type: "dragging"; noteId: NoteId; isOverTrash: boolean }
   | { type: "resizing"; noteId: NoteId };
 
 export type TrashChecker = (noteId: NoteId) => boolean;
