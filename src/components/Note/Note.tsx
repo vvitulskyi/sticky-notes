@@ -33,7 +33,6 @@ function NoteComponent({ noteId }: NoteProps) {
   const { onResizePointerDown } = useResize(noteId);
   const { isDragging, isResizing } = useInteractionState(noteId);
   const isOverTrash = useTrashOverlapForNote(noteId);
-  console.log('isOverTrash', noteId, new Date().toISOString())
 
   const handleNotePointerDown = useCallback(
     (event: React.PointerEvent) => {
