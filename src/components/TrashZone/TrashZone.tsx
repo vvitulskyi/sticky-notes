@@ -1,15 +1,13 @@
-import { forwardRef } from "react";
+import type { Ref } from "react";
 
 import styles from "./TrashZone.module.scss";
 
 interface TrashZoneProps {
   isHighlighted: boolean;
+  ref?: Ref<HTMLDivElement>;
 }
 
-const TrashZone = forwardRef<HTMLDivElement, TrashZoneProps>(function TrashZone(
-  { isHighlighted },
-  ref,
-) {
+function TrashZone({ isHighlighted, ref }: TrashZoneProps) {
   const className = [
     styles.trashZone,
     isHighlighted ? styles.trashZoneActive : "",
@@ -26,6 +24,6 @@ const TrashZone = forwardRef<HTMLDivElement, TrashZoneProps>(function TrashZone(
       </span>
     </div>
   );
-});
+}
 
 export default TrashZone;
