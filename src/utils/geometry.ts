@@ -61,3 +61,34 @@ export function worldRectToScreen(
     height: rect.height * viewport.zoom,
   };
 }
+
+export function getVisibleWorldRect(
+  viewport: ViewportState,
+  origin: Point,
+  viewportWidth: number,
+  viewportHeight: number,
+): Rect {
+  const topLeft = screenToWorld(origin.x, origin.y, viewport, origin);
+  const bottomRight = screenToWorld(
+    origin.x + viewportWidth,
+    origin.y + viewportHeight,
+    viewport,
+    origin,
+  );
+
+  return {
+    x: topLeft.x,
+    y: topLeft.y,
+    width: bottomRight.x - topLeft.x,
+    height: bottomRight.y - topLeft.y,
+  };
+}
+
+export function rectsIntersect(a: Rect, b: Rect): boolean {
+  return (
+    a.x < b.x + b.width &&
+    a.x + a.width > b.x &&
+    a.y < b.y + b.height &&
+    a.y + a.height > b.y
+  );
+}

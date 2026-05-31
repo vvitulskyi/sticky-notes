@@ -6,7 +6,7 @@ import {
 import { getPointerPosition } from "@/utils/pointer";
 
 import type { ViewportService } from "./ViewportService";
-import type { Point } from "@/types/geometry";
+import type { Point, Size } from "@/types/geometry";
 
 export class PointerService {
   #viewportElement: HTMLElement | null = null;
@@ -23,6 +23,15 @@ export class PointerService {
 
   get originPoint(): Point {
     return this.#getOrigin();
+  }
+
+  getViewportSize(): Size | null {
+    if (!this.#viewportElement) {
+      return null;
+    }
+
+    const rect = this.#viewportElement.getBoundingClientRect();
+    return { width: rect.width, height: rect.height };
   }
 
   setViewportElement(element: HTMLElement | null): void {

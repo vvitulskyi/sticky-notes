@@ -1,6 +1,7 @@
 import { useCallback, useSyncExternalStore } from "react";
 
-import { zIndexService } from "@/services";
+import { pointerService, viewportService, zIndexService } from "@/services";
+import { getNewNotePosition } from "@/utils/getNewNotePosition";
 import { notesStore } from "@/stores";
 import {
   DEFAULT_NOTE_HEIGHT,
@@ -31,15 +32,22 @@ export function useBoard() {
 
   const addNote = useCallback((color?: NoteColor) => {
     const state = notesStore.state;
-    const offset = state.noteOrder.length * 24;
+    const lastNoteId = state.noteOrder[state.noteOrder.length - 1];
+    const lastNote = lastNoteId ? state.notes[lastNoteId] : undefined;
+    const { x, y } = getNewNotePosition(
+      viewportService.state,
+      pointerService.originPoint,
+      pointerService.getViewportSize(),
+      lastNote,
+    );
     const zIndex = zIndexService.allocate();
     const noteColor =
       color ?? NOTE_COLORS[Math.floor(Math.random() * NOTE_COLORS.length)];
 
     const note: Note = {
       id: generateNoteId(),
-      x: 100 + offset,
-      y: 100 + offset,
+      x,
+      y,
       width: DEFAULT_NOTE_WIDTH,
       height: DEFAULT_NOTE_HEIGHT,
       text: "",
