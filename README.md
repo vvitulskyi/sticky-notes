@@ -13,8 +13,7 @@ Desktop sticky notes application built with React, TypeScript, and Vite. No drag
 - Inline text editing with z-index ordering (click to bring to front)
 - Multiple note colors via header color picker
 - Infinite board with pan (left mouse on empty area) and zoom (mouse wheel)
-- Local storage persistence for notes and viewport (debounced)
-- Mock async REST API as a fallback data source on first load
+- Local storage persistence for notes and viewport (debounced, via mock async API)
 - Trash zone deletion via drag-and-drop collision
 
 ## Getting Started
@@ -62,10 +61,10 @@ src/
 | `ViewportService` | Pan/zoom state, world ↔ screen coordinate conversion |
 | `PointerService` | Window-level pointer events during drag/resize |
 | `InteractionService` | Drag, resize, and trash overlap sessions |
-| `PersistenceService` | Load/save notes and viewport to `localStorage` |
-| `ApiService` | Mock REST API used when local storage is empty |
+| `PersistenceService` | Debounced serialization of store/viewport and calls to the API layer |
+| `ApiService` | Mock async REST API backed by `localStorage` |
 | `ZIndexService` | Monotonic z-index allocation and sync |
 
 ### Persistence
 
-On startup, `usePersistence` restores the viewport from storage, then loads notes from `localStorage`. If nothing is stored yet, it fetches from the mock API. Changes are written back debounced on store and viewport updates.
+On startup, `usePersistence` calls `PersistenceService.hydrate()`, which loads notes and viewport through `ApiService` (simulated latency, `localStorage` underneath). Changes are written back debounced on store and viewport updates via the same API layer.
