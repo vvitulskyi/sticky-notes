@@ -5,8 +5,8 @@ import type { ApiService } from "./ApiService";
 import type { ViewportService } from "./ViewportService";
 import type { NotesStore } from "@/stores/NotesStore";
 import type { Note, NoteId } from "@/types/note";
-import type { ViewportState } from "@/types/viewport";
 import type { Listener, Unsubscribe } from "@/types/subscription";
+import type { ViewportState } from "@/types/viewport";
 
 export class PersistenceService {
   #debounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -37,12 +37,10 @@ export class PersistenceService {
   #trackSave(promise: Promise<void>): void {
     this.#pendingSaves += 1;
     this.#notifyStatus();
-    void promise
-      .catch(alertError)
-      .finally(() => {
-        this.#pendingSaves -= 1;
-        this.#notifyStatus();
-      });
+    void promise.catch(alertError).finally(() => {
+      this.#pendingSaves -= 1;
+      this.#notifyStatus();
+    });
   }
 
   #serializeNotes(): Note[] {
@@ -51,9 +49,7 @@ export class PersistenceService {
   }
 
   #saveViewport(): void {
-    this.#trackSave(
-      this.apiService.saveViewport(this.viewportService.state),
-    );
+    this.#trackSave(this.apiService.saveViewport(this.viewportService.state));
   }
 
   #scheduleViewportPersist = (): void => {
