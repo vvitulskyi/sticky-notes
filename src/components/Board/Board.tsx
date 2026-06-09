@@ -39,9 +39,7 @@ export default function Board() {
           onSelectColor={setSelectedColor}
           ariaLabel="Default note color"
         />
-        {isSaving ? (
-          <Spinner size="sm" label="Saving…" />
-        ) : null}
+        {isSaving ? <Spinner size="sm" label="Saving…" /> : null}
       </div>
       <div ref={connectViewportRef} className={styles.viewportLayer}>
         <div className={styles.worldLayer} style={worldTransformStyle}>
