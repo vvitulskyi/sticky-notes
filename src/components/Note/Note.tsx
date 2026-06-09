@@ -9,10 +9,7 @@ import {
 } from "@/hooks/useBoard";
 import { useDrag } from "@/hooks/useDrag";
 import { useResize } from "@/hooks/useResize";
-import {
-  useInteractionState,
-  useTrashOverlapForNote,
-} from "@/hooks/useTrashZone";
+import { useInteractionState } from "@/hooks/useTrashZone";
 
 import styles from "./Note.module.scss";
 
@@ -24,6 +21,7 @@ interface NoteProps {
 }
 
 function NoteComponent({ noteId }: NoteProps) {
+  console.log("NoteComponent", noteId);
   const noteRef = useRef<HTMLDivElement>(null);
   const note = useNote(noteId);
   const updateText = useUpdateNoteText(noteId);
@@ -31,8 +29,7 @@ function NoteComponent({ noteId }: NoteProps) {
   const promoteNote = usePromoteNote(noteId);
   const { onDragPointerDown } = useDrag(noteId);
   const { onResizePointerDown } = useResize(noteId);
-  const { isDragging, isResizing } = useInteractionState(noteId);
-  const isOverTrash = useTrashOverlapForNote(noteId);
+  const { isResizing } = useInteractionState(noteId);
 
   const handleNotePointerDown = useCallback(
     (event: React.PointerEvent) => {
@@ -76,16 +73,7 @@ function NoteComponent({ noteId }: NoteProps) {
   const classNames = [
     styles.note,
     styles[note.color],
-    isDragging ? styles.noteDragging : "",
     isResizing ? styles.noteResizing : "",
-    isOverTrash ? styles.noteOverTrash : "",
-  ]
-    .filter(Boolean)
-    .join(" ");
-
-  const dragHandleClass = [
-    styles.dragHandle,
-    isDragging ? styles.dragHandleDragging : "",
   ]
     .filter(Boolean)
     .join(" ");
@@ -113,7 +101,7 @@ function NoteComponent({ noteId }: NoteProps) {
           />
         </div>
         <div
-          className={dragHandleClass}
+          className={styles.dragHandle}
           onPointerDown={handleDragDown}
           aria-label="Drag note"
         />

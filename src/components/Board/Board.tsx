@@ -16,7 +16,7 @@ import type { NoteColor } from "@/types/note";
 export default function Board() {
   const { noteOrder, addNote } = useBoard();
   const { isSaving } = useApiStatus();
-  const { trashRef, isHighlighted } = useTrashZone();
+  const { trashRef } = useTrashZone();
   const { connectViewportRef, worldTransformStyle } = useViewport();
   const [selectedColor, setSelectedColor] = useState<NoteColor>("yellow");
 
@@ -46,7 +46,7 @@ export default function Board() {
           <NoteLayer noteOrder={noteOrder} />
         </div>
       </div>
-      <TrashZone ref={trashRef} isHighlighted={isHighlighted} />
+      <TrashZone ref={trashRef} />
     </div>
   );
 }

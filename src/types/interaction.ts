@@ -6,12 +6,14 @@ export type InteractionState =
   | { type: "dragging"; noteId: NoteId; isOverTrash: boolean }
   | { type: "resizing"; noteId: NoteId };
 
-export type TrashChecker = (noteId: NoteId) => boolean;
+export type TrashChecker = (noteId: NoteId, position?: Point) => boolean;
 
 export interface DragSession {
   noteId: NoteId;
   startPointer: Point;
   startPosition: Point;
+  currentPosition: Point;
+  isOverTrash: boolean;
   capturedElement: Element;
   pointerId: number;
 }

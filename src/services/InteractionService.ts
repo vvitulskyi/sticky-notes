@@ -18,6 +18,7 @@ export class InteractionService {
   #dragSession: DragSession | null = null;
   #resizeSession: ResizeSession | null = null;
   #trashChecker: TrashChecker | null = null;
+  #trashHitArea: HTMLElement | null = null;
   #interactionListeners = new Set<Listener>();
 
   constructor(
@@ -32,17 +33,60 @@ export class InteractionService {
     this.#interactionListeners.forEach((l) => l());
   }
 
-  #setTrashOverlap(overlapped: boolean): void {
-    if (this.#interactionState.type !== "dragging") {
+  #getTrashVisual(): HTMLElement | null {
+    return (
+      this.#trashHitArea?.querySelector<HTMLElement>("[data-trash-visual]") ??
+      null
+    );
+  }
+
+  #setDragTrashOverlap(overlapped: boolean): void {
+    if (!this.#dragSession || this.#dragSession.isOverTrash === overlapped) {
       return;
     }
-    if (this.#interactionState.isOverTrash === overlapped) {
+
+    this.#dragSession.isOverTrash = overlapped;
+
+    const noteEl = this.#dragSession.capturedElement as HTMLElement;
+    if (overlapped) {
+      noteEl.dataset.overTrash = "true";
+    } else {
+      delete noteEl.dataset.overTrash;
+    }
+
+    const trashVisual = this.#getTrashVisual();
+    if (!trashVisual) {
       return;
     }
-    this.#setInteractionState({
-      ...this.#interactionState,
-      isOverTrash: overlapped,
-    });
+    if (overlapped) {
+      trashVisual.dataset.active = "true";
+    } else {
+      delete trashVisual.dataset.active;
+    }
+  }
+
+  #beginDragVisuals(): void {
+    if (!this.#dragSession) {
+      return;
+    }
+    const noteEl = this.#dragSession.capturedElement as HTMLElement;
+    noteEl.dataset.dragging = "true";
+  }
+
+  #clearDragVisuals(): void {
+    if (!this.#dragSession) {
+      return;
+    }
+
+    const noteEl = this.#dragSession.capturedElement as HTMLElement;
+    delete noteEl.dataset.dragging;
+    delete noteEl.dataset.overTrash;
+    noteEl.style.transform = "";
+
+    const trashVisual = this.#getTrashVisual();
+    if (trashVisual) {
+      delete trashVisual.dataset.active;
+    }
   }
 
   #handlePointerMove = (event: PointerEvent): void => {
@@ -53,15 +97,15 @@ export class InteractionService {
         this.#dragSession.startPointer,
       );
       const position = applyDelta(this.#dragSession.startPosition, delta);
+      this.#dragSession.currentPosition = position;
 
-      this.notesStore.dispatch({
-        type: "UPDATE_NOTE",
-        id: this.#dragSession.noteId,
-        patch: { x: position.x, y: position.y },
-      });
+      (this.#dragSession.capturedElement as HTMLElement).style.transform =
+        `translate3d(${position.x}px, ${position.y}px, 0)`;
 
       if (this.#trashChecker) {
-        this.#setTrashOverlap(this.#trashChecker(this.#dragSession.noteId));
+        this.#setDragTrashOverlap(
+          this.#trashChecker(this.#dragSession.noteId, position),
+        );
       }
     }
 
@@ -99,22 +143,30 @@ export class InteractionService {
       return;
     }
 
-    const shouldDelete =
-      this.#interactionState.type === "dragging" &&
-      this.#interactionState.isOverTrash;
+    const dragSession = this.#dragSession;
 
-    if (shouldDelete) {
+    if (dragSession.isOverTrash) {
       this.notesStore.dispatch({
         type: "DELETE_NOTE",
-        id: this.#dragSession.noteId,
+        id: dragSession.noteId,
+      });
+    } else {
+      this.notesStore.dispatch({
+        type: "UPDATE_NOTE",
+        id: dragSession.noteId,
+        patch: {
+          x: dragSession.currentPosition.x,
+          y: dragSession.currentPosition.y,
+        },
       });
     }
+
+    this.#clearDragVisuals();
 
     this.#dragSession.capturedElement.releasePointerCapture(
       this.#dragSession.pointerId,
     );
     this.#dragSession = null;
-    this.#setInteractionState({ type: "idle" });
   }
 
   #endResize(): void {
@@ -159,12 +211,16 @@ export class InteractionService {
     this.#trashChecker = checker;
   }
 
+  setTrashHitArea(element: HTMLElement | null): void {
+    this.#trashHitArea = element;
+  }
+
   startDrag(
     noteId: NoteId,
     event: React.PointerEvent,
     noteElement: Element,
   ): void {
-    if (this.#interactionState.type !== "idle") {
+    if (this.#dragSession || this.#resizeSession) {
       return;
     }
 
@@ -176,17 +232,21 @@ export class InteractionService {
     event.preventDefault();
     event.currentTarget.setPointerCapture(event.pointerId);
 
+    const startPosition = { x: note.x, y: note.y };
+
     this.#dragSession = {
       noteId,
       startPointer: this.pointerService.getScreenPositionFromEvent(
         event.nativeEvent,
       ),
-      startPosition: { x: note.x, y: note.y },
+      startPosition,
+      currentPosition: startPosition,
+      isOverTrash: false,
       capturedElement: noteElement,
       pointerId: event.pointerId,
     };
 
-    this.#setInteractionState({ type: "dragging", noteId, isOverTrash: false });
+    this.#beginDragVisuals();
   }
 
   startResize(
@@ -194,7 +254,7 @@ export class InteractionService {
     event: React.PointerEvent,
     noteElement: Element,
   ): void {
-    if (this.#interactionState.type !== "idle") {
+    if (this.#dragSession || this.#resizeSession) {
       return;
     }
 

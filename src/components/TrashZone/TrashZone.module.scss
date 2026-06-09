@@ -20,7 +20,7 @@
   transition: background 0.15s ease, border-color 0.15s ease, transform 0.15s ease;
 }
 
-.trashZoneActive {
+.trashZone[data-active='true'] {
   background: rgba(239, 68, 68, 0.15);
   border-color: rgba(239, 68, 68, 0.6);
   transform: scale(1.05);
